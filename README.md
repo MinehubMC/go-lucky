@@ -20,7 +20,8 @@ client := golucky.New(config)
 
 
 // Permission check
-permCheck, err := client.UserHasPermission("7bd5b459-1e6b-4753-8274-1fbd2fe9a4d5", "cool.permission")
+ctx := context.Background()
+permCheck, err := client.UserHasPermission(ctx, "7bd5b459-1e6b-4753-8274-1fbd2fe9a4d5", "cool.permission")
 if err != nil {
     fmt.Println(err)
     return
@@ -30,7 +31,8 @@ fmt.Println(permCheck.Result) // One of [ true, false, undefined ]
 
 
 // Add user to group
-nodes, err := client.AddUserNode("7bd5b459-1e6b-4753-8274-1fbd2fe9a4d5", golucky.NewNode{
+ctx := context.Background()
+nodes, err := client.AddUserNode(ctx, "7bd5b459-1e6b-4753-8274-1fbd2fe9a4d5", golucky.NewNode{
     Key:   "group.cool",
     Value: true,
 })

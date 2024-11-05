@@ -2,14 +2,15 @@ package golucky
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-func getRequest[V any](url string, auth string) (*V, error) {
-	req, err := http.NewRequest("GET", url, nil)
+func getRequest[V any](ctx context.Context, url string, auth string) (*V, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		fmt.Printf("Request error: %s", err)
 		return nil, err
@@ -28,8 +29,6 @@ func getRequest[V any](url string, auth string) (*V, error) {
 
 	byteValue, _ := io.ReadAll(resp.Body)
 
-	fmt.Println(string(byteValue))
-
 	var marshalled V
 	err = json.Unmarshal(byteValue, &marshalled)
 	if err != nil {
@@ -39,13 +38,13 @@ func getRequest[V any](url string, auth string) (*V, error) {
 	return &marshalled, nil
 }
 
-func postRequestBody[V any](url string, v any, auth string) (*V, error) {
+func postRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
 	marshalBytes, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(marshalBytes))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(marshalBytes))
 	if err != nil {
 		fmt.Printf("Request error: %s", err)
 		return nil, err
@@ -64,8 +63,6 @@ func postRequestBody[V any](url string, v any, auth string) (*V, error) {
 
 	byteValue, _ := io.ReadAll(resp.Body)
 
-	fmt.Println(string(byteValue))
-
 	var marshalled V
 	err = json.Unmarshal(byteValue, &marshalled)
 	if err != nil {
@@ -75,13 +72,13 @@ func postRequestBody[V any](url string, v any, auth string) (*V, error) {
 	return &marshalled, nil
 }
 
-func patchRequestBody[V any](url string, v any, auth string) (*V, error) {
+func patchRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
 	marshalBytes, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PATCH", url, bytes.NewBuffer(marshalBytes))
+	req, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewBuffer(marshalBytes))
 	if err != nil {
 		fmt.Printf("Request error: %s", err)
 		return nil, err
@@ -109,13 +106,13 @@ func patchRequestBody[V any](url string, v any, auth string) (*V, error) {
 	return &marshalled, nil
 }
 
-func putRequestBody[V any](url string, v any, auth string) (*V, error) {
+func putRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
 	marshalBytes, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(marshalBytes))
+	req, err := http.NewRequestWithContext(ctx, "PUT", url, bytes.NewBuffer(marshalBytes))
 	if err != nil {
 		fmt.Printf("Request error: %s", err)
 		return nil, err
@@ -143,8 +140,8 @@ func putRequestBody[V any](url string, v any, auth string) (*V, error) {
 	return &marshalled, nil
 }
 
-func deleteRequest[V any](url string, auth string) (*V, error) {
-	req, err := http.NewRequest("DELETE", url, nil)
+func deleteRequest[V any](ctx context.Context, url string, auth string) (*V, error) {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
 	if err != nil {
 		fmt.Printf("Request error: %s", err)
 		return nil, err
@@ -172,8 +169,8 @@ func deleteRequest[V any](url string, auth string) (*V, error) {
 	return &marshalled, nil
 }
 
-func deleteRequestNoResponse(url string, auth string) error {
-	req, err := http.NewRequest("DELETE", url, nil)
+func deleteRequestNoResponse(ctx context.Context, url string, auth string) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
 	if err != nil {
 		fmt.Printf("Request error: %s", err)
 		return err
@@ -193,13 +190,13 @@ func deleteRequestNoResponse(url string, auth string) error {
 	return nil
 }
 
-func deleteRequestBody[V any](url string, v any, auth string) (*V, error) {
+func deleteRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
 	marshalBytes, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(marshalBytes))
+	req, err := http.NewRequestWithContext(ctx, "DELETE", url, bytes.NewBuffer(marshalBytes))
 	if err != nil {
 		fmt.Printf("Request error: %s", err)
 		return nil, err
