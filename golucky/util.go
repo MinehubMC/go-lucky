@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,6 +29,50 @@ func getRequest[V any](ctx context.Context, url string, auth string) (*V, error)
 	defer resp.Body.Close()
 
 	byteValue, _ := io.ReadAll(resp.Body)
+	bodyStr := string(byteValue)
+
+	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
+		return nil, errors.New(fmt.Sprintf("Request returned %s: %s", resp.Status, bodyStr))
+	}
+
+	var marshalled V
+	err = json.Unmarshal(byteValue, &marshalled)
+	if err != nil {
+		return nil, err
+	}
+
+	return &marshalled, nil
+}
+
+func requestWithBody[V any](ctx context.Context, method string, url string, v any, auth string) (*V, error) {
+	marshalBytes, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(marshalBytes))
+	if err != nil {
+		fmt.Printf("Request error: %s", err)
+		return nil, err
+	}
+
+	req.Close = true
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", auth))
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Printf("Do error: %s", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	byteValue, _ := io.ReadAll(resp.Body)
+	bodyStr := string(byteValue)
+
+	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
+		return nil, errors.New(fmt.Sprintf("Request returned %s: %s", resp.Status, bodyStr))
+	}
 
 	var marshalled V
 	err = json.Unmarshal(byteValue, &marshalled)
@@ -39,105 +84,19 @@ func getRequest[V any](ctx context.Context, url string, auth string) (*V, error)
 }
 
 func postRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
-	marshalBytes, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(marshalBytes))
-	if err != nil {
-		fmt.Printf("Request error: %s", err)
-		return nil, err
-	}
-
-	req.Close = true
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", auth))
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Printf("Do error: %s", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	byteValue, _ := io.ReadAll(resp.Body)
-
-	var marshalled V
-	err = json.Unmarshal(byteValue, &marshalled)
-	if err != nil {
-		return nil, err
-	}
-
-	return &marshalled, nil
+	return requestWithBody[V](ctx, http.MethodPost, url, v, auth)
 }
 
 func patchRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
-	marshalBytes, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewBuffer(marshalBytes))
-	if err != nil {
-		fmt.Printf("Request error: %s", err)
-		return nil, err
-	}
-
-	req.Close = true
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", auth))
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Printf("Do error: %s", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	byteValue, _ := io.ReadAll(resp.Body)
-
-	var marshalled V
-	err = json.Unmarshal(byteValue, &marshalled)
-	if err != nil {
-		return nil, err
-	}
-
-	return &marshalled, nil
+	return requestWithBody[V](ctx, http.MethodPatch, url, v, auth)
 }
 
 func putRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
-	marshalBytes, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
+	return requestWithBody[V](ctx, http.MethodPut, url, v, auth)
+}
 
-	req, err := http.NewRequestWithContext(ctx, "PUT", url, bytes.NewBuffer(marshalBytes))
-	if err != nil {
-		fmt.Printf("Request error: %s", err)
-		return nil, err
-	}
-
-	req.Close = true
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", auth))
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Printf("Do error: %s", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	byteValue, _ := io.ReadAll(resp.Body)
-
-	var marshalled V
-	err = json.Unmarshal(byteValue, &marshalled)
-	if err != nil {
-		return nil, err
-	}
-
-	return &marshalled, nil
+func deleteRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
+	return requestWithBody[V](ctx, http.MethodDelete, url, v, auth)
 }
 
 func deleteRequest[V any](ctx context.Context, url string, auth string) (*V, error) {
@@ -159,6 +118,11 @@ func deleteRequest[V any](ctx context.Context, url string, auth string) (*V, err
 	defer resp.Body.Close()
 
 	byteValue, _ := io.ReadAll(resp.Body)
+	bodyStr := string(byteValue)
+
+	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
+		return nil, errors.New(fmt.Sprintf("Request returned %s: %s", resp.Status, bodyStr))
+	}
 
 	var marshalled V
 	err = json.Unmarshal(byteValue, &marshalled)
@@ -187,39 +151,12 @@ func deleteRequestNoResponse(ctx context.Context, url string, auth string) error
 	}
 	defer resp.Body.Close()
 
-	return nil
-}
-
-func deleteRequestBody[V any](ctx context.Context, url string, v any, auth string) (*V, error) {
-	marshalBytes, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "DELETE", url, bytes.NewBuffer(marshalBytes))
-	if err != nil {
-		fmt.Printf("Request error: %s", err)
-		return nil, err
-	}
-
-	req.Close = true
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", auth))
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Printf("Do error: %s", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
 	byteValue, _ := io.ReadAll(resp.Body)
+	bodyStr := string(byteValue)
 
-	var marshalled V
-	err = json.Unmarshal(byteValue, &marshalled)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
+		return errors.New(fmt.Sprintf("Request returned %s: %s", resp.Status, bodyStr))
 	}
 
-	return &marshalled, nil
+	return nil
 }
