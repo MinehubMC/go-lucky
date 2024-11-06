@@ -29,10 +29,10 @@ func (c *Client) GetTrack(ctx context.Context, trackName string) (*Track, error)
 	return getRequest[Track](ctx, fmt.Sprintf("%s/track/%s", c.config.RestIp, trackName), c.config.AuthKey)
 }
 
-func (c *Client) UpdateTrack(ctx context.Context, trackName string, groups []string) (*Track, error) {
-	return patchRequestBody[Track](ctx, fmt.Sprintf("%s/track/%s", c.config.RestIp, trackName), newGroups{Groups: groups}, c.config.AuthKey)
+func (c *Client) UpdateTrack(ctx context.Context, trackName string, groups []string) error {
+	return patchRequestNoResponse(ctx, fmt.Sprintf("%s/track/%s", c.config.RestIp, trackName), newGroups{Groups: groups}, c.config.AuthKey)
 }
 
 func (c *Client) DeleteTrack(ctx context.Context, trackName string) error {
-	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/track/%s", c.config.RestIp, trackName), c.config.AuthKey)
+	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/track/%s", c.config.RestIp, trackName), nil, c.config.AuthKey)
 }

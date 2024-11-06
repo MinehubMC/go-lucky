@@ -26,7 +26,7 @@ func (c *Client) CreateGroup(ctx context.Context, name string) (*Group, error) {
 }
 
 func (c *Client) DeleteGroup(ctx context.Context, name string) error {
-	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/group/%s", c.config.RestIp, name), c.config.AuthKey)
+	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/group/%s", c.config.RestIp, name), nil, c.config.AuthKey)
 }
 
 func (c *Client) GetGroup(ctx context.Context, group string) (*Group, error) {
@@ -48,14 +48,19 @@ func (c *Client) AddGroupNodes(ctx context.Context, groupName string, nodes []Ne
 	return patchRequestBody[[]Node](ctx, fmt.Sprintf("%s/group/%s/nodes", c.config.RestIp, groupName), nodes, c.config.AuthKey)
 }
 
-// SetGroupNodes Replaces all the Nodes of the group with newNodes, then returns the new array of nodes
-func (c *Client) SetGroupNodes(ctx context.Context, groupName string, newNodes []NewNode) (*[]Node, error) {
-	return putRequestBody[[]Node](ctx, fmt.Sprintf("%s/group/%s/nodes", c.config.RestIp, groupName), newNodes, c.config.AuthKey)
+// SetGroupNodes Replaces all the Nodes of the group with newNodes
+func (c *Client) SetGroupNodes(ctx context.Context, groupName string, newNodes []NewNode) error {
+	return putRequestNoResponse(ctx, fmt.Sprintf("%s/group/%s/nodes", c.config.RestIp, groupName), newNodes, c.config.AuthKey)
 }
 
-// RemoveGroupNodes Removes multiple Nodes from a group, then returns the new array of nodes
-func (c *Client) RemoveGroupNodes(ctx context.Context, groupName string, nodes []NewNode) (*[]Node, error) {
-	return deleteRequestBody[[]Node](ctx, fmt.Sprintf("%s/group/%s/nodes", c.config.RestIp, groupName), nodes, c.config.AuthKey)
+// RemoveGroupNodes Removes multiple Nodes from a group
+func (c *Client) RemoveGroupNodes(ctx context.Context, groupName string, nodes []NewNode) error {
+	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/group/%s/nodes", c.config.RestIp, groupName), nodes, c.config.AuthKey)
+}
+
+// ClearGroupNodes Removes all Nodes from a group
+func (c *Client) ClearGroupNodes(ctx context.Context, groupName string) error {
+	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/group/%s/nodes", c.config.RestIp, groupName), nil, c.config.AuthKey)
 }
 
 func (c *Client) GroupHasPermission(ctx context.Context, group string, permission string) (*PermissionCheckResult, error) {

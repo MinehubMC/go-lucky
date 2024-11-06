@@ -46,7 +46,7 @@ func (c *Client) CreateUser(ctx context.Context, uuid string, username string) (
 }
 
 func (c *Client) DeleteUser(ctx context.Context, uuid string) error {
-	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/user/%s", c.config.RestIp, uuid), c.config.AuthKey)
+	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/user/%s", c.config.RestIp, uuid), nil, c.config.AuthKey)
 }
 
 func (c *Client) LookupUserUUID(ctx context.Context, uuid string) (*UserLookupResult, error) {
@@ -76,14 +76,19 @@ func (c *Client) AddUserNodes(ctx context.Context, uuid string, nodes []NewNode)
 	return patchRequestBody[[]Node](ctx, fmt.Sprintf("%s/user/%s/nodes", c.config.RestIp, uuid), nodes, c.config.AuthKey)
 }
 
-// SetUserNodes Replaces all the Nodes of the user with newNodes, then returns the new array of nodes
-func (c *Client) SetUserNodes(ctx context.Context, uuid string, newNodes []NewNode) (*[]Node, error) {
-	return putRequestBody[[]Node](ctx, fmt.Sprintf("%s/user/%s/nodes", c.config.RestIp, uuid), newNodes, c.config.AuthKey)
+// SetUserNodes Replaces all the Nodes of the user with newNodes
+func (c *Client) SetUserNodes(ctx context.Context, uuid string, newNodes []NewNode) error {
+	return putRequestNoResponse(ctx, fmt.Sprintf("%s/user/%s/nodes", c.config.RestIp, uuid), newNodes, c.config.AuthKey)
 }
 
-// RemoveUserNodes Removes multiple Nodes from a user, then returns the new array of nodes
-func (c *Client) RemoveUserNodes(ctx context.Context, uuid string, nodes []NewNode) (*[]Node, error) {
-	return deleteRequestBody[[]Node](ctx, fmt.Sprintf("%s/user/%s/nodes", c.config.RestIp, uuid), nodes, c.config.AuthKey)
+// RemoveUserNodes Removes multiple Nodes from a user
+func (c *Client) RemoveUserNodes(ctx context.Context, uuid string, nodes []NewNode) error {
+	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/user/%s/nodes", c.config.RestIp, uuid), nodes, c.config.AuthKey)
+}
+
+// ClearUserNodes Removes all Nodes from a user
+func (c *Client) ClearUserNodes(ctx context.Context, uuid string) error {
+	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/user/%s/nodes", c.config.RestIp, uuid), nil, c.config.AuthKey)
 }
 
 func (c *Client) UserHasPermission(ctx context.Context, uuid string, permission string) (*PermissionCheckResult, error) {
