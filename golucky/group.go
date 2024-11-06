@@ -25,8 +25,8 @@ func (c *Client) CreateGroup(ctx context.Context, name string) (*Group, error) {
 	return postRequestBody[Group](ctx, fmt.Sprintf("%s/group", c.config.RestIp), groupName{Name: name}, c.config.AuthKey)
 }
 
-func (c *Client) DeleteGroup(ctx context.Context, name string) (*Group, error) {
-	return deleteRequest[Group](ctx, fmt.Sprintf("%s/group/%s", c.config.RestIp, name), c.config.AuthKey)
+func (c *Client) DeleteGroup(ctx context.Context, name string) error {
+	return deleteRequestNoResponse(ctx, fmt.Sprintf("%s/group/%s", c.config.RestIp, name), c.config.AuthKey)
 }
 
 func (c *Client) GetGroup(ctx context.Context, group string) (*Group, error) {
